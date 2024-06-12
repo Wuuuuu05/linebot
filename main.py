@@ -1,8 +1,10 @@
 import os
+import requsets
+import json
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, RichMenu, RichMenuArea, RichMenuBounds, RichMenuSize, URIAction
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
 
@@ -37,27 +39,69 @@ def handle_message(event):
         TextSendMessage(text=event.message.text))
 
 def create_rich_menu():
-    rich_menu = RichMenu(
-        size=RichMenuSize(width=2500, height=1686),
-        selected=True,
-        name="Menu",
-        chat_bar_text="Tap to open",
-        areas=[
-            RichMenuArea(
-                bounds=RichMenuBounds(x=0, y=0, width=1250, height=843),
-                action=URIAction(uri='https://example.com/')
-            ),
-            RichMenuArea(
-                bounds=RichMenuBounds(x=1250, y=0, width=1250, height=843),
-                action=URIAction(uri='https://example.com/')
-            )
-        ]
-    )
-    rich_menu_id = line_bot_api.create_rich_menu(rich_menu=rich_menu)
-    with open('path/to/rich_menu_image.png', 'rb') as f:
-        line_bot_api.set_rich_menu_image(rich_menu_id, 'image/png', f)
-    line_bot_api.set_default_rich_menu(rich_menu_id)
+    url = "https://api.line.me/v2/bot/richmenu"
 
+    payload = json.dumps({
+        "size": {
+            "width": 2500,
+            "height": 1686
+        },
+        "selected": False,
+        "name": "Nice rich menu",
+        "chatBarText": "Tap to open",
+        "areas": [
+            {
+                "bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 2500,
+                    "height": 1686
+                },
+                "action": {
+                    "type": "postback",
+                    "data": "action=buy&itemid=123"
+                }
+            }
+        ]
+    })
+    headers = {
+        'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    rich_menu_id = response.json().get('richMenuId')
+    if rich_menu_id:
+        print(f"Rich menu created: {rich_menu_id}")
+        set_rich_menu_image(rich_menu_id)
+        set_default_rich_menu(rich_menu_id)
+    else:
+        print(f"Failed to create rich menu: {response.text}")
+
+def set_rich_menu_image(rich_menu_id):
+    url = f"https://api.line.me/v2/bot/richmenu/{rich_menu_id}/content"
+    headers = {
+        'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}',
+        'Content-Type': 'image/png'
+    }
+    with open('/Users/dana0529/Downloads/wp12341821.jpg', 'rb') as f:
+        response = requests.request("POST", url, headers=headers, data=f)
+    if response.status_code == 200:
+        print("Rich menu image set successfully")
+    else:
+        print(f"Failed to set rich menu image: {response.text}")
+
+def set_default_rich_menu(rich_menu_id):
+    url = f"https://api.line.me/v2/bot/user/all/richmenu/{rich_menu_id}"
+    headers = {
+        'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}'
+    }
+    response = requests.request("POST", url, headers=headers)
+    if response.status_code == 200:
+        print("Default rich menu set successfully")
+    else:
+        print(f"Failed to set default rich menu: {response.text}")
+        
 if __name__ == "__main__":
     create_rich_menu()
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
