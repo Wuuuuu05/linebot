@@ -84,7 +84,7 @@ def set_rich_menu_image(rich_menu_id):
         'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}',
         'Content-Type': 'image/png'
     }
-    with open('/Users/dana0529/Downloads/wp12341821.jpg', 'rb') as f:
+    with open('wp12341807.jpg', 'rb') as f:
         response = requests.request("POST", url, headers=headers, data=f)
     if response.status_code == 200:
         print("Rich menu image set successfully")
