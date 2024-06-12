@@ -6,8 +6,8 @@ from linebot.models import *
 app = Flask(__name__)
 
 # 設置您的Channel Secret和Channel Access Token
-line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler('YOUR_CHANNEL_SECRET')
+line_bot_api = LineBotApi('CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler('CHANNEL_SECRET')
 
 @app.route("/callback", methods=['POST'])
 def callback():
