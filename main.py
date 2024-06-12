@@ -1,5 +1,5 @@
 import os
-import requsets
+import requests
 import json
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
